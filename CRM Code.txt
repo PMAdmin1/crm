@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My CRM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-xl font-bold mb-4">Client CRM</h1>
+
+    <form id="addClientForm" class="mb-6">
+      <input type="text" id="name" placeholder="Name" class="border p-2 w-full mb-2" required />
+      <input type="email" id="email" placeholder="Email" class="border p-2 w-full mb-2" required />
+      <input type="text" id="service" placeholder="Service" class="border p-2 w-full mb-2" />
+      <select id="status" class="border p-2 w-full mb-2">
+        <option value="Lead">Lead</option>
+        <option value="Prospect">Prospect</option>
+        <option value="Client">Client</option>
+        <option value="Closed">Closed</option>
+      </select>
+      <textarea id="notes" placeholder="Notes" class="border p-2 w-full mb-2"></textarea>
+      <input type="date" id="last_followed_up" class="border p-2 w-full mb-2" />
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Add Client</button>
+    </form>
+
+    <div id="clientsList"></div>
+  </div>
+
+  <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
+    <div class="bg-white p-6 rounded w-full max-w-md">
+      <h2 class="text-lg font-bold mb-4">Edit Client</h2>
+      <form id="editClientForm">
+        <input type="hidden" id="edit_id" />
+        <input type="text" id="edit_name" class="border p-2 w-full mb-2" required />
+        <input type="email" id="edit_email" class="border p-2 w-full mb-2" required />
+        <input type="text" id="edit_service" class="border p-2 w-full mb-2" />
+        <select id="edit_status" class="border p-2 w-full mb-2">
+          <option value="Lead">Lead</option>
+          <option value="Prospect">Prospect</option>
+          <option value="Client">Client</option>
+          <option value="Closed">Closed</option>
+        </select>
+        <textarea id="edit_notes" class="border p-2 w-full mb-2"></textarea>
+        <input type="date" id="edit_last_followed_up" class="border p-2 w-full mb-2" />
+        <div class="flex justify-between">
+          <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
+          <button type="button" onclick="closeModal()" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://ekviuxquppigrefaujur.supabase.co'
+    const supabase = createClient('https://uewfmvqfmobgyhhzpkqe.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVld2ZtdnFmbW9iZ3loaHpwa3FlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MjQyNzQsImV4cCI6MjA3MDAwMDI3NH0.vhN8YLQIqiz2itIDrTU1TysI6Ki65_y56IRl1IA4rlM')
+
+    async function fetchClients() {
+      const { data, error } = await supabase.from('clients').select('*').order('created_at', { ascending: false })
+      const container = document.getElementById('clientsList')
+      container.innerHTML = ''
+      data.forEach(client => {
+        container.innerHTML += `
+          <div class="border p-4 mb-2 rounded bg-white">
+            <h2 class="font-bold text-lg">${client.name}</h2>
+            <p>Email: ${client.email}</p>
+            <p>Service: ${client.service}</p>
+            <p>Status: <span class="font-semibold">${client.status}</span></p>
+            <p>Notes: ${client.notes || ''}</p>
+            <p>Last Followed Up: ${client.last_followed_up || 'N/A'}</p>
+            <div class="flex gap-2 mt-2">
+              <button onclick='editClient(${JSON.stringify(client)})' class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</button>
+              <button onclick='deleteClient("${client.id}")' class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+            </div>
+          </div>
+        `
+      })
+    }
+
+    async function deleteClient(id) {
+      await supabase.from('clients').delete().eq('id', id)
+      fetchClients()
+    }
+
+    function editClient(client) {
+      document.getElementById('edit_id').value = client.id
+      document.getElementById('edit_name').value = client.name
+      document.getElementById('edit_email').value = client.email
+      document.getElementById('edit_service').value = client.service
+      document.getElementById('edit_status').value = client.status || 'Lead'
+      document.getElementById('edit_notes').value = client.notes
+      document.getElementById('edit_last_followed_up').value = client.last_followed_up || ''
+      document.getElementById('editModal').classList.remove('hidden')
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').classList.add('hidden')
+    }
+
+    document.getElementById('addClientForm').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const name = document.getElementById('name').value
+      const email = document.getElementById('email').value
+      const service = document.getElementById('service').value
+      const status = document.getElementById('status').value
+      const notes = document.getElementById('notes').value
+      const last_followed_up = document.getElementById('last_followed_up').value
+      await supabase.from('clients').insert([{ name, email, service, status, notes, last_followed_up }])
+      fetchClients()
+      e.target.reset()
+    })
+
+    document.getElementById('editClientForm').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const id = document.getElementById('edit_id').value
+      const name = document.getElementById('edit_name').value
+      const email = document.getElementById('edit_email').value
+      const service = document.getElementById('edit_service').value
+      const status = document.getElementById('edit_status').value
+      const notes = document.getElementById('edit_notes').value
+      const last_followed_up = document.getElementById('edit_last_followed_up').value
+      await supabase.from('clients').update({ name, email, service, status, notes, last_followed_up }).eq('id', id)
+      closeModal()
+      fetchClients()
+    })
+
+    fetchClients()
+  </script>
+</body>
+</html>
+
