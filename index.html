@@ -54,12 +54,12 @@
 
  <script type="module">
   // 1) Import the ESM build of Supabase
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
 
   // 2) Initialize your client with your project URL and publishable key
   const supabase = createClient(
     'https://uewfmvqfmobgyhhzpkqe.supabase.co',
-    'sb_publishable_3sP1RNS6ym910t7nmf0YoQ_OS8P2RA-'  // ← your Publishable key
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrdml1eHF1cHBpZ3JlZmF1anVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MjkyMTIsImV4cCI6MjA3MDAwNTIxMn0.BlHQThep_d6laHMJhC2U83uYNImszhSzKgdiSjSM7XQ'  // ← your Publishable key
   );
 
   // 3) Fetch & render clients
