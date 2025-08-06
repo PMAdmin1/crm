@@ -52,38 +52,47 @@
     </div>
   </div>
 
-  <script type="module">
-  // 1️⃣ Use the official Supabase JS CDN
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm''
+ <script type="module">
+  // 1) Import the ESM build of Supabase
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-  // 2️⃣ Initialize with your URL + anon key
+  // 2) Initialize your client with your project URL and publishable key
   const supabase = createClient(
     'https://uewfmvqfmobgyhhzpkqe.supabase.co',
-    'sb_publishable_3sP1RNS6ym910t7nmf0YoQ_OS8P2RA-' // your anon key
-  )
+    'sb_publishable_3sP1RNS6ym910t7nmf0YoQ_OS8P2RA-'  // ← your Publishable key
+  );
 
-  // Fetch + render
+  // 3) Fetch & render clients
   async function fetchClients() {
     const { data, error } = await supabase
       .from('clients')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false });
     if (error) {
-      console.error('Fetch error:', error)
-      return
+      console.error('Fetch error:', error);
+      return;
     }
-    const container = document.getElementById('clientsList')
-    container.innerHTML = data.map(c => `
-      <div class="...">
-        <h2>${c.name}</h2>
-        <!-- etc. -->
-      </div>
-    `).join('')
+    const container = document.getElementById('clientsList');
+    container.innerHTML = data
+      .map(c => `
+        <div class="border p-4 mb-2 rounded bg-white">
+          <h2 class="font-bold text-lg">${c.name}</h2>
+          <p>Email: ${c.email}</p>
+          <p>Service: ${c.service}</p>
+          <p>Status: <span class="font-semibold">${c.status}</span></p>
+          <p>Notes: ${c.notes || ''}</p>
+          <p>Last Followed Up: ${c.last_followed_up || 'N/A'}</p>
+          <div class="flex gap-2 mt-2">
+            <button onclick='editClient(${JSON.stringify(c)})' class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</button>
+            <button onclick='deleteClient("${c.id}")' class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+          </div>
+        </div>
+      `).join('');
   }
 
-  // Insert with error handling
+  // 4) Insert handler with error logging
   document.getElementById('addClientForm').addEventListener('submit', async e => {
-    e.preventDefault()
+    e.preventDefault();
     const payload = {
       name: document.getElementById('name').value,
       email: document.getElementById('email').value,
@@ -91,23 +100,38 @@
       status: document.getElementById('status').value,
       notes: document.getElementById('notes').value,
       last_followed_up: document.getElementById('last_followed_up').value
-    }
+    };
 
     const { data, error } = await supabase
       .from('clients')
-      .insert([payload])
+      .insert([payload]);
 
     if (error) {
-      console.error('Insert error:', error)
-      alert('❌ Failed to save client — check console for details.')
-      return
+      console.error('Insert error:', error);
+      alert('❌ Failed to save client—see console for details.');
+      return;
     }
 
-    fetchClients()
-    e.target.reset()
-  })
+    fetchClients();
+    e.target.reset();
+  });
 
-  fetchClients()
+  // 5) Edit / Delete functions (unchanged)
+  async function deleteClient(id) {
+    await supabase.from('clients').delete().eq('id', id);
+    fetchClients();
+  }
+
+  function editClient(client) {
+    /* your existing editClient code */
+  }
+
+  function closeModal() {
+    /* your existing closeModal code */
+  }
+
+  // initial load
+  fetchClients();
 </script>
 </body>
 </html>
